@@ -69,10 +69,13 @@ public class NullSpaceFinder {
             }
         }
 
-        Print2DArray(RowEchelonForm(matrix));
-        System.out.println("_____________________________________");
+        Print2DArray(ReducedRowEchelonForm(matrix));
 
-        Print2DArray(FindBasisVectors(RowEchelonForm(matrix)));
+        System.out.println("________________________________");
+
+        Print2DArray(FindBasisVectors(ReducedRowEchelonForm(matrix)));
+
+
 
     }
 
@@ -112,21 +115,62 @@ public class NullSpaceFinder {
         System.out.println();
     }
 
-    private static double[][] RowEchelonForm(double[][] matrix){
+    private static double[][] ReducedRowEchelonForm(double[][] matrix){
 
 
         for (int j = 0; j < matrix[0].length-1; j++) {
+            if(matrix[j][j] == 0) RowOperationType1(matrix, j, j);
+            if(matrix[j][j] != 1 && matrix[j][j] != 0) RowOperationType2(matrix, j);
             for (int i = j+1; i < matrix.length; i++) {
                 if (matrix[i][j] != 0){
-                    RowOperation(matrix, i, j);
+                    RowOperationType3(matrix, i, j);
                 }
             }
             for (int i = j-1; i >= 0 && matrix[j][j] != 0; i--) {
                 if (matrix[i][j] != 0){
-                    RowOperation(matrix, i, j);
+                    RowOperationType3(matrix, i, j);
                 }
             }
 
+        }
+
+        return matrix;
+    }
+
+    private static double[][] RowOperationType2(double[][] matrix, int row){
+        double a = matrix[row][row];
+
+        for (int i = 0; i < matrix[0].length; i++) {
+            matrix[row][i] = matrix[row][i] / a;
+        }
+
+        return matrix;
+    }
+
+    private static double[][] RowOperationType1(double[][] matrix, int row, int column){
+        int exchangeRow = -1;
+
+        for (int i = row+1; i < matrix.length; i++) {
+            if(matrix[i][column] != 0){
+                exchangeRow = i;
+                break;
+            }
+        }
+
+        if(exchangeRow != -1) {
+            double[] tempRow = new double[matrix[0].length];
+
+            for (int i = 0; i < matrix[0].length; i++) {
+                tempRow[i] = matrix[row][i];
+            }
+
+            for (int i = 0; i < matrix[0].length; i++) {
+                matrix[row][i] = matrix[exchangeRow][i];
+            }
+
+            for (int i = 0; i < matrix[0].length; i++) {
+                matrix[exchangeRow][i] = tempRow[i];
+            }
         }
 
         return matrix;
@@ -165,12 +209,19 @@ public class NullSpaceFinder {
         int row = 0;
         int column = 0;
 
-        for (int i = 0; i < matrix[0].length; i++) {
+        for (int i = 0; i < identity.length; i++) {
             if (identity[i] == 'F'){
                 column = 0;
-                for (int j = 0; j < matrix.length; j++) {
-                    if (matrix[j][i] != 0) {
-                        basisVectors[row][column] = -matrix[j][i]/FindBasicElementInRow(matrix, j);
+                if(basisVectors[0].length < matrix.length) {
+                    for (int j = 0; j < basisVectors[0].length; j++) {
+                        basisVectors[row][column] = -matrix[j][i];
+                        if (basisVectors[row][column] == -0) basisVectors[row][column] = 0;
+                        column++;
+                    }
+                }else{
+                    for (int j = 0; j < matrix.length; j++) {
+                        basisVectors[row][column] = -matrix[j][i];
+                        if (basisVectors[row][column] == -0) basisVectors[row][column] = 0;
                         column++;
                     }
                 }
@@ -200,12 +251,11 @@ public class NullSpaceFinder {
         return 0;
     }
 
-    private static double[][] RowOperation(double[][] matrix, int row, int column){
+    private static double[][] RowOperationType3(double[][] matrix, int row, int column){
         double a = matrix[row][column];
-        double b = matrix[column][column];
 
         for (int i = 0; i < matrix[row].length; i++) {
-            matrix[row][i] = matrix[row][i] - (a*matrix[column][i])/b;
+            matrix[row][i] = matrix[row][i] - (a*matrix[column][i]);
         }
 
 
