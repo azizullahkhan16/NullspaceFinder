@@ -69,6 +69,28 @@ public class NullSpaceFinder {
             }
         }
 
+//        double[][] matrix = new double[][]{
+//                {2, 2, -4, 3, -9, 1},
+//                {1, 1, -2, -3, 0, 2},
+//                {3, 3, -6, -3, -6, 2}
+//        };
+
+//        double[][] matrix = new double[][]{
+//                {1, 1, 0, 0, 1},
+//                {0, 0, 1, -2, 0},
+//                {4, 2, 0, 0, 3},
+//                {1, 1, 1, -2, 1},
+//                {2, 2, 0, 0, 2},
+//                {1, 1, 2, -4, 1}
+//        };
+
+//        double[][] matrix = new double[][]{
+//                {3, 0, 3, 3, 3},
+//                {-3, 1, -2, -4, -1},
+//                {5, 4, 9, 1, 13},
+//                {7, 6, 13, 1, 19}
+//        };
+
         Print2DArray(ReducedRowEchelonForm(matrix));
 
         System.out.println("________________________________");
@@ -116,19 +138,36 @@ public class NullSpaceFinder {
     }
 
     private static double[][] ReducedRowEchelonForm(double[][] matrix){
+        int rowLength = 0;
+        if(matrix[0].length < matrix.length) rowLength = matrix[0].length;
+        else rowLength = matrix.length;
 
-
-        for (int j = 0; j < matrix[0].length-1; j++) {
+        for (int j = 0; j < rowLength; j++) {
             if(matrix[j][j] == 0) RowOperationType1(matrix, j, j);
-            if(matrix[j][j] != 1 && matrix[j][j] != 0) RowOperationType2(matrix, j);
-            for (int i = j+1; i < matrix.length; i++) {
-                if (matrix[i][j] != 0){
-                    RowOperationType3(matrix, i, j);
+            if(matrix[j][j] != 1 && matrix[j][j] != 0) RowOperationType2(matrix, j, j);
+            if(matrix[j][j] == 0){
+                int a = FindBasicElementInRow(matrix, j);
+                if(matrix[j][a] != 1 && matrix[j][a] != 0) RowOperationType2(matrix, j, a);
+                for (int i = j+1; i < matrix.length; i++) {
+                    if (matrix[i][a] != 0){
+                        RowOperationType3(matrix, i, j, a);
+                    }
                 }
-            }
-            for (int i = j-1; i >= 0 && matrix[j][j] != 0; i--) {
-                if (matrix[i][j] != 0){
-                    RowOperationType3(matrix, i, j);
+                for (int i = j-1; i >= 0 && matrix[j][a] != 0; i--) {
+                    if (matrix[i][a] != 0){
+                        RowOperationType3(matrix, i, j, a);
+                    }
+                }
+            }else {
+                for (int i = j + 1; i < matrix.length; i++) {
+                    if (matrix[i][j] != 0) {
+                        RowOperationType3(matrix, i, j, j);
+                    }
+                }
+                for (int i = j - 1; i >= 0 && matrix[j][j] != 0; i--) {
+                    if (matrix[i][j] != 0) {
+                        RowOperationType3(matrix, i, j, j);
+                    }
                 }
             }
 
@@ -137,8 +176,8 @@ public class NullSpaceFinder {
         return matrix;
     }
 
-    private static double[][] RowOperationType2(double[][] matrix, int row){
-        double a = matrix[row][row];
+    private static double[][] RowOperationType2(double[][] matrix, int row, int column){
+        double a = matrix[row][column];
 
         for (int i = 0; i < matrix[0].length; i++) {
             matrix[row][i] = matrix[row][i] / a;
@@ -189,6 +228,22 @@ public class NullSpaceFinder {
         return numBases;
     }
 
+//    private static char[] MarkFreeAndBasicVariable(char[] identity, double[][] matrix){
+//        int numBases = 0;
+//
+//        for (int i = 0; i < matrix.length; i++) {
+//            for (int j = i+numBases; j < matrix[i].length; j++) {
+//                if(matrix[i][j] != 0){
+//                    identity[j] = 'B';
+//                    break;
+//                }else {
+//                    identity[j] = 'F';
+//                    numBases++;
+//                }
+//            }
+//        }
+//    }
+
     private static double[][] FindBasisVectors(double[][] matrix){
         double[][] basisVectors = new double[NumOfBasisVectors(matrix)][matrix[0].length];
         char[] identity = new char[matrix[0].length];
@@ -210,19 +265,33 @@ public class NullSpaceFinder {
         int column = 0;
 
         for (int i = 0; i < identity.length; i++) {
-            if (identity[i] == 'F'){
+            if (identity[i] == 'F') {
                 column = 0;
-                if(basisVectors[0].length < matrix.length) {
+                if (basisVectors[0].length < matrix.length) {
                     for (int j = 0; j < basisVectors[0].length; j++) {
-                        basisVectors[row][column] = -matrix[j][i];
-                        if (basisVectors[row][column] == -0) basisVectors[row][column] = 0;
-                        column++;
+                        for (int k = j; k < identity.length; k++) {
+                            if(identity[k] != 'B'){
+                                column++;
+                            }else break;
+                        }
+                        if(matrix[j][i] != 0) {
+                            basisVectors[row][column] = -matrix[j][i];
+                            if (basisVectors[row][column] == -0) basisVectors[row][column] = 0;
+                            column++;
+                        }
                     }
-                }else{
+                } else {
                     for (int j = 0; j < matrix.length; j++) {
-                        basisVectors[row][column] = -matrix[j][i];
-                        if (basisVectors[row][column] == -0) basisVectors[row][column] = 0;
-                        column++;
+                        for (int k = j; k < identity.length; k++) {
+                            if(identity[k] != 'B'){
+                                column++;
+                            }else break;
+                        }
+                        if(matrix[j][i] != 0) {
+                            basisVectors[row][column] = -matrix[j][i];
+                            if (basisVectors[row][column] == -0) basisVectors[row][column] = 0;
+                            column++;
+                        }
                     }
                 }
                 row++;
@@ -242,20 +311,20 @@ public class NullSpaceFinder {
 
     }
 
-    private static double FindBasicElementInRow(double[][] matrix, int row){
+    private static int FindBasicElementInRow(double[][] matrix, int row){
 
         for (int i = 0; i < matrix[row].length; i++) {
-            if (matrix[row][i] != 0) return matrix[row][i];
+            if (matrix[row][i] != 0) return i;
         }
 
         return 0;
     }
 
-    private static double[][] RowOperationType3(double[][] matrix, int row, int column){
-        double a = matrix[row][column];
+    private static double[][] RowOperationType3(double[][] matrix, int row1, int row2, int column){
+        double a = matrix[row1][column];
 
-        for (int i = 0; i < matrix[row].length; i++) {
-            matrix[row][i] = matrix[row][i] - (a*matrix[column][i]);
+        for (int i = 0; i < matrix[row1].length; i++) {
+            matrix[row1][i] = matrix[row1][i] - (a*matrix[row2][i]);
         }
 
 
