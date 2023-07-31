@@ -228,25 +228,7 @@ public class NullSpaceFinder {
         return numBases;
     }
 
-//    private static char[] MarkFreeAndBasicVariable(char[] identity, double[][] matrix){
-//        int numBases = 0;
-//
-//        for (int i = 0; i < matrix.length; i++) {
-//            for (int j = i+numBases; j < matrix[i].length; j++) {
-//                if(matrix[i][j] != 0){
-//                    identity[j] = 'B';
-//                    break;
-//                }else {
-//                    identity[j] = 'F';
-//                    numBases++;
-//                }
-//            }
-//        }
-//    }
-
-    private static double[][] FindBasisVectors(double[][] matrix){
-        double[][] basisVectors = new double[NumOfBasisVectors(matrix)][matrix[0].length];
-        char[] identity = new char[matrix[0].length];
+    private static char[] MarkFreeAndBasicVariable(char[] identity, double[][] matrix){
         int numBases = 0;
 
         for (int i = 0; i < matrix.length; i++) {
@@ -261,8 +243,17 @@ public class NullSpaceFinder {
             }
         }
 
+        return identity;
+    }
+
+    private static double[][] FindBasisVectors(double[][] matrix){
+        double[][] basisVectors = new double[NumOfBasisVectors(matrix)][matrix[0].length];
+        char[] identity = new char[matrix[0].length];
+
+        MarkFreeAndBasicVariable(identity, matrix);
+
         int row = 0;
-        int column = 0;
+        int column;
 
         for (int i = 0; i < identity.length; i++) {
             if (identity[i] == 'F') {
